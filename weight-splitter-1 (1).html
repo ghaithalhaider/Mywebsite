@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ميزان التقسيم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F1E7;
+    --ink:#2A241C;
+    --line:#D8CDB8;
+    --rust:#A6472B;
+    --olive:#5E6B49;
+    --olive-light:#EAEEDF;
+    --danger:#A6472B;
+    --sub:#8A8070;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(42,36,28,0.05) 1px, transparent 0);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .ticket{
+    width:100%;
+    max-width:480px;
+    background:#FFFDF8;
+    border:1px solid var(--line);
+    box-shadow:0 1px 0 rgba(42,36,28,0.04), 0 12px 24px rgba(42,36,28,0.06);
+    position:relative;
+  }
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute;
+    left:0; right:0;
+    height:14px;
+    background:
+      radial-gradient(circle at 10px 0, transparent 7px, #FFFDF8 7px) 0 0/20px 14px repeat-x;
+  }
+  .ticket::before{ top:-1px; transform:rotate(180deg); }
+  .ticket::after{ bottom:-1px; }
+
+  header{
+    padding:26px 26px 16px;
+    text-align:center;
+    border-bottom:1px dashed var(--line);
+  }
+  header h1{
+    font-size:22px;
+    font-weight:900;
+    margin:0 0 4px;
+    letter-spacing:0.2px;
+  }
+  header p{
+    margin:0;
+    font-size:13px;
+    color:var(--sub);
+  }
+
+  .section{
+    padding:20px 26px;
+    border-bottom:1px dashed var(--line);
+  }
+  .section:last-child{ border-bottom:none; }
+
+  .section h2{
+    font-size:13px;
+    font-weight:700;
+    color:var(--sub);
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .section h2 .num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px; height:18px;
+    background:var(--olive);
+    color:#FFF8F0;
+    border-radius:50%;
+    font-size:11px;
+    font-weight:900;
+    flex-shrink:0;
+  }
+
+  /* generic inputs */
+  input[type=number]{
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    text-align:center;
+    background:#FFFCF6;
+    border:1px solid var(--line);
+    border-radius:3px;
+    color:var(--ink);
+  }
+  input[type=number]:focus{ outline:none; border-color:var(--olive); }
+  input[type=number]::placeholder{
+    font-weight:500;
+    color:#B7AC94;
+    font-size:12px;
+  }
+
+  /* bags helper */
+  .bags-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .bags-row .grp{ flex:1 1 100px; min-width:100px; display:flex; flex-direction:column; gap:5px; }
+  .bags-row label{ font-size:12px; font-weight:700; color:var(--ink); }
+  .bags-row input{ width:100%; padding:9px 8px; font-size:14px; }
+  .bags-total{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--olive-light);
+    border-radius:4px;
+    padding:10px 14px;
+    margin-bottom:10px;
+  }
+  .bags-total span:first-child{ font-size:13px; font-weight:700; color:var(--olive); }
+  .bags-total span:last-child{ font-size:17px; font-weight:900; color:var(--olive); font-variant-numeric:tabular-nums; }
+
+  /* total weight / total price main field */
+  .total-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .total-row label{ font-size:15px; font-weight:900; }
+  .total-row input{ width:130px; padding:10px; font-size:17px; }
+  .price-hint{ font-size:12px; color:var(--sub); margin-top:10px; line-height:1.6; }
+
+  /* piece rows */
+  .piece-block{
+    padding:12px 0;
+    border-top:1px solid var(--line);
+  }
+  .piece-block:first-of-type{ border-top:none; }
+
+  .piece-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .piece-tag{
+    width:56px;
+    text-align:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--olive);
+    background:var(--olive-light);
+    border-radius:3px;
+    padding:4px 0;
+    flex-shrink:0;
+  }
+  .piece-name{ font-size:14px; font-weight:700; }
+
+  .piece-inputs{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .piece-inputs .grp{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .piece-inputs .grp label{
+    font-size:12px;
+    color:var(--sub);
+    font-weight:500;
+    white-space:nowrap;
+  }
+  .piece-count, .piece-weight-input{
+    width:92px;
+    padding:7px 6px;
+    font-size:14px;
+  }
+  .sep{ color:#C9BFA9; font-size:13px; padding:0 2px; }
+
+  .piece-price{
+    margin-top:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:13px;
+    color:var(--rust);
+    font-weight:700;
+  }
+  .piece-price span:last-child{ font-variant-numeric:tabular-nums; font-size:14px; }
+
+  .remaining-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--ink);
+  }
+  .remaining-line span:first-child{ font-size:14px; font-weight:700; }
+  .remaining-line span:last-child{
+    font-size:20px;
+    font-weight:900;
+    font-variant-numeric:tabular-nums;
+  }
+  .remaining-line.over span:last-child{ color:var(--danger); }
+  .remaining-line.zero span:last-child{ color:var(--olive); }
+
+  .price-total-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  .price-total-line span:first-child{ font-size:14px; font-weight:900; color:var(--rust); }
+  .price-total-line span:last-child{
+    font-size:21px;
+    font-weight:900;
+    color:var(--rust);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .random-result{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .random-card{
+    flex:1;
+    background:var(--olive-light);
+    border-radius:4px;
+    padding:12px 6px;
+    text-align:center;
+  }
+  .random-card .n{
+    font-size:22px;
+    font-weight:900;
+    color:var(--olive);
+    font-variant-numeric:tabular-nums;
+  }
+  .random-card .l{ font-size:11px; font-weight:700; color:var(--olive); margin-top:2px; }
+
+  button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:3px;
+    font-family:'Tajawal', sans-serif;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:opacity 0.15s ease;
+  }
+  button:active{ opacity:0.8; }
+  .btn-rust{ background:var(--rust); color:#FFF8F0; margin-bottom:8px; }
+  .btn-outline{ background:transparent; color:var(--olive); border:1px solid var(--olive); }
+
+  .hint{ font-size:12px; color:var(--sub); margin-top:8px; line-height:1.6; }
+
+  /* print button */
+  .btn-print{ background:var(--ink); color:#FFF8F0; }
+
+  /* receipt (print-only) */
+  .receipt{ display:none; }
+
+  @media print{
+    @page{ size:80mm auto; margin:0; }
+    html, body{
+      background:#fff !important;
+      padding:0 !important;
+      margin:0 !important;
+      width:80mm;
+    }
+    .app{ display:none !important; }
+    .receipt{
+      display:block !important;
+      width:100%;
+      box-sizing:border-box;
+      padding:4mm 5mm;
+      font-family:'Tajawal', monospace, sans-serif;
+      color:#000;
+      font-size:11px;
+      line-height:1.7;
+    }
+    .receipt *{
+      overflow-wrap:break-word;
+      word-break:break-word;
+    }
+    .receipt h1{
+      text-align:center;
+      font-size:14px;
+      margin:0 0 3mm;
+    }
+    .receipt .rline{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:8px;
+    }
+    .receipt .rline span:first-child{
+      flex:1 1 auto;
+      min-width:0;
+      text-align:right;
+    }
+    .receipt .rline span:last-child{
+      flex:0 0 auto;
+      min-width:0;
+      text-align:left;
+      white-space:nowrap;
+    }
+    .receipt hr{
+      border:none;
+      border-top:1px dashed #000;
+      margin:2.5mm 0;
+    }
+    .receipt .rtotal{
+      font-weight:900;
+      font-size:13px;
+    }
+    .receipt .rsmall{
+      font-size:9px;
+      text-align:center;
+      color:#333;
+      margin-top:2.5mm;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="ticket app">
+  <header>
+    <h1>ميزان التقسيم</h1>
+    <p>وزّع الكمية إلى كيلو، نص كيلو، وربع كيلو مع حساب السعر</p>
+  </header>
+
+  <div class="section">
+    <h2><span class="num">١</span>حساب الوزن من عدد الأكياس (اختياري)</h2>
+    <div class="bags-row">
+      <div class="grp">
+        <label>عدد الأكياس</label>
+        <input type="number" id="bagCount" placeholder="أدخل القيمة" min="0" step="1">
+      </div>
+      <div class="grp">
+        <label>وزن الكيس الواحد (كغم)</label>
+        <input type="number" id="bagWeight" placeholder="أدخل القيمة" min="0" step="0.01">
+      </div>
+      <div class="grp">
+        <label>سعر الكيس الواحد</label>
+        <input type="number" id="bagPrice" placeholder="أدخل القيمة" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="bags-total">
+      <span>الوزن الكلي المحسوب</span>
+      <span id="bagsTotalDisplay">٠ كغم</span>
+    </div>
+    <div class="bags-total">
+      <span>السعر الإجمالي المحسوب</span>
+      <span id="bagsPriceDisplay">٠</span>
+    </div>
+    <button class="btn-outline" id="btnUseBagsTotal">استخدام الوزن والسعر في الأقسام أعلاه</button>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">٢</span>الوزن الكلي</h2>
+    <div class="total-row">
+      <label for="totalWeight">الوزن الكلي (كغم)</label>
+      <input type="number" id="totalWeight" placeholder="أدخل القيمة" min="0" step="0.25">
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">٣</span>سعر الكيس الكبير</h2>
+    <div class="total-row">
+      <label for="totalPrice">السعر الإجمالي لكامل الوزن</label>
+      <input type="number" id="totalPrice" placeholder="أدخل القيمة" min="0" step="0.01">
+    </div>
+    <div class="price-hint" id="priceHint"></div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">٤</span>التقسيم اليدوي</h2>
+
+    <div class="piece-block">
+      <div class="piece-head">
+        <span class="piece-tag">١ كغم</span>
+        <span class="piece-name">كيلو كامل</span>
+      </div>
+      <div class="piece-inputs">
+        <div class="grp">
+          <label>عدد القطع</label>
+          <input type="number" class="piece-count" id="countKilo" placeholder="أدخل القيمة" min="0" step="1">
+        </div>
+        <span class="sep">=</span>
+        <div class="grp">
+          <label>الوزن (كغم)</label>
+          <input type="number" class="piece-weight-input" id="weightKilo" placeholder="أدخل القيمة" min="0" step="0.25">
+        </div>
+      </div>
+      <div class="piece-price"><span>سعر هذه الفئة</span><span id="priceKilo">٠</span></div>
+    </div>
+
+    <div class="piece-block">
+      <div class="piece-head">
+        <span class="piece-tag">٠.٥ كغم</span>
+        <span class="piece-name">نص كيلو</span>
+      </div>
+      <div class="piece-inputs">
+        <div class="grp">
+          <label>عدد القطع</label>
+          <input type="number" class="piece-count" id="countHalf" placeholder="أدخل القيمة" min="0" step="1">
+        </div>
+        <span class="sep">=</span>
+        <div class="grp">
+          <label>الوزن (كغم)</label>
+          <input type="number" class="piece-weight-input" id="weightHalf" placeholder="أدخل القيمة" min="0" step="0.25">
+        </div>
+      </div>
+      <div class="piece-price"><span>سعر هذه الفئة</span><span id="priceHalf">٠</span></div>
+    </div>
+
+    <div class="piece-block">
+      <div class="piece-head">
+        <span class="piece-tag">٠.٢٥ كغم</span>
+        <span class="piece-name">ربع كيلو</span>
+      </div>
+      <div class="piece-inputs">
+        <div class="grp">
+          <label>عدد القطع</label>
+          <input type="number" class="piece-count" id="countQuarter" placeholder="أدخل القيمة" min="0" step="1">
+        </div>
+        <span class="sep">=</span>
+        <div class="grp">
+          <label>الوزن (كغم)</label>
+          <input type="number" class="piece-weight-input" id="weightQuarter" placeholder="أدخل القيمة" min="0" step="0.25">
+        </div>
+      </div>
+      <div class="piece-price"><span>سعر هذه الفئة</span><span id="priceQuarter">٠</span></div>
+    </div>
+
+    <button class="btn-outline" id="btnSplitRemainder" style="margin-top:14px;">أكمل الباقي تلقائيًا (نص وربع مناصفة)</button>
+
+    <div class="remaining-line" id="remainingLine">
+      <span>المتبقي من الوزن</span>
+      <span id="remainingValue">٠ كغم</span>
+    </div>
+    <div class="hint" id="hintText"></div>
+
+    <div class="price-total-line">
+      <span>مجموع السعر النهائي</span>
+      <span id="priceTotal">٠</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">٥</span>توزيع عشوائي مقترح (على كامل الوزن)</h2>
+    <div class="random-result">
+      <div class="random-card"><div class="n" id="randKilo">–</div><div class="l">كيلو</div></div>
+      <div class="random-card"><div class="n" id="randHalf">–</div><div class="l">نص كيلو</div></div>
+      <div class="random-card"><div class="n" id="randQuarter">–</div><div class="l">ربع كيلو</div></div>
+    </div>
+    <button class="btn-rust" id="btnRandom">جرّب توزيعًا عشوائيًا</button>
+    <button class="btn-outline" id="btnApply">استخدم هذا التوزيع في الأعلى</button>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">٦</span>طباعة الفاتورة (طابعة ٨٠مم)</h2>
+    <div class="hint" style="margin-top:0;margin-bottom:12px;">يطبع إيصالًا يحتوي الوزن الكلي، التقسيم، والأسعار، بعرض يناسب ورق الطابعة ٨٠ ملم.</div>
+    <button class="btn-print" id="btnPrint">طباعة الإيصال</button>
+  </div>
+
+</div>
+
+<div class="receipt" id="printReceipt">
+  <h1>فاتورة توزيع الوزن</h1>
+  <div class="rline"><span>الوزن الكلي</span><span id="rTotalWeight">٠ كغم</span></div>
+  <div class="rline"><span>السعر الإجمالي</span><span id="rTotalPrice">٠</span></div>
+  <div class="rline"><span>سعر الكيلو الواحد</span><span id="rPricePerKg">٠</span></div>
+  <hr>
+  <div class="rline"><span>كيلو كامل</span><span id="rKilo">٠ قطعة — ٠ كغم</span></div>
+  <div class="rline"><span>سعر هذه الفئة</span><span id="rKiloPrice">٠</span></div>
+  <hr>
+  <div class="rline"><span>نص كيلو</span><span id="rHalf">٠ قطعة — ٠ كغم</span></div>
+  <div class="rline"><span>سعر هذه الفئة</span><span id="rHalfPrice">٠</span></div>
+  <hr>
+  <div class="rline"><span>ربع كيلو</span><span id="rQuarter">٠ قطعة — ٠ كغم</span></div>
+  <div class="rline"><span>سعر هذه الفئة</span><span id="rQuarterPrice">٠</span></div>
+  <hr>
+  <div class="rline"><span>المتبقي من الوزن</span><span id="rRemaining">٠ كغم</span></div>
+  <hr>
+  <div class="rline rtotal"><span>المجموع النهائي</span><span id="rPriceTotal">٠</span></div>
+  <div class="rsmall" id="rDate"></div>
+</div>
+
+<script>
+const UNIT = { Kilo: 1, Half: 0.5, Quarter: 0.25 };
+const els = {
+  bagCount: document.getElementById('bagCount'),
+  bagWeight: document.getElementById('bagWeight'),
+  bagPrice: document.getElementById('bagPrice'),
+  bagsTotalDisplay: document.getElementById('bagsTotalDisplay'),
+  bagsPriceDisplay: document.getElementById('bagsPriceDisplay'),
+  btnUseBagsTotal: document.getElementById('btnUseBagsTotal'),
+
+  total: document.getElementById('totalWeight'),
+  totalPrice: document.getElementById('totalPrice'),
+  priceHint: document.getElementById('priceHint'),
+
+  cKilo: document.getElementById('countKilo'),
+  cHalf: document.getElementById('countHalf'),
+  cQuarter: document.getElementById('countQuarter'),
+  wKilo: document.getElementById('weightKilo'),
+  wHalf: document.getElementById('weightHalf'),
+  wQuarter: document.getElementById('weightQuarter'),
+
+  priceKilo: document.getElementById('priceKilo'),
+  priceHalf: document.getElementById('priceHalf'),
+  priceQuarter: document.getElementById('priceQuarter'),
+  priceTotal: document.getElementById('priceTotal'),
+
+  remainingLine: document.getElementById('remainingLine'),
+  remainingValue: document.getElementById('remainingValue'),
+  hint: document.getElementById('hintText'),
+  randKilo: document.getElementById('randKilo'),
+  randHalf: document.getElementById('randHalf'),
+  randQuarter: document.getElementById('randQuarter'),
+  btnRandom: document.getElementById('btnRandom'),
+  btnApply: document.getElementById('btnApply'),
+  btnSplitRemainder: document.getElementById('btnSplitRemainder'),
+  btnPrint: document.getElementById('btnPrint'),
+
+  rTotalWeight: document.getElementById('rTotalWeight'),
+  rTotalPrice: document.getElementById('rTotalPrice'),
+  rPricePerKg: document.getElementById('rPricePerKg'),
+  rKilo: document.getElementById('rKilo'),
+  rKiloPrice: document.getElementById('rKiloPrice'),
+  rHalf: document.getElementById('rHalf'),
+  rHalfPrice: document.getElementById('rHalfPrice'),
+  rQuarter: document.getElementById('rQuarter'),
+  rQuarterPrice: document.getElementById('rQuarterPrice'),
+  rRemaining: document.getElementById('rRemaining'),
+  rPriceTotal: document.getElementById('rPriceTotal'),
+  rDate: document.getElementById('rDate'),
+};
+
+function fmt(n){
+  const rounded = Math.round(n * 100) / 100;
+  return (Object.is(rounded, -0) ? 0 : rounded).toString();
+}
+function num(el){
+  const v = parseFloat(el.value);
+  return isNaN(v) ? 0 : v;
+}
+
+// --- bags helper: count x weight per bag = total weight, count x price per bag = total price ---
+function recalcBags(){
+  const count = Math.max(0, num(els.bagCount));
+  const w = Math.max(0, num(els.bagWeight));
+  const p = Math.max(0, num(els.bagPrice));
+  els.bagsTotalDisplay.textContent = fmt(count * w) + ' كغم';
+  els.bagsPriceDisplay.textContent = fmt(count * p);
+}
+els.bagCount.addEventListener('input', recalcBags);
+els.bagWeight.addEventListener('input', recalcBags);
+els.bagPrice.addEventListener('input', recalcBags);
+els.btnUseBagsTotal.addEventListener('click', () => {
+  const count = Math.max(0, num(els.bagCount));
+  const w = Math.max(0, num(els.bagWeight));
+  const p = Math.max(0, num(els.bagPrice));
+  els.total.value = fmt(count * w);
+  els.totalPrice.value = fmt(count * p);
+  recalc();
+});
+
+// --- two-way binding between each count input and its weight input ---
+function bindPair(countEl, weightEl, unit){
+  countEl.addEventListener('input', () => {
+    const c = Math.max(0, Math.round(num(countEl)));
+    weightEl.value = countEl.value === '' ? '' : fmt(c * unit);
+    recalc();
+  });
+  weightEl.addEventListener('input', () => {
+    const w = Math.max(0, num(weightEl));
+    countEl.value = weightEl.value === '' ? '' : Math.round(w / unit);
+    recalc();
+  });
+}
+bindPair(els.cKilo, els.wKilo, UNIT.Kilo);
+bindPair(els.cHalf, els.wHalf, UNIT.Half);
+bindPair(els.cQuarter, els.wQuarter, UNIT.Quarter);
+
+function recalc(){
+  const total = num(els.total);
+  const totalPrice = num(els.totalPrice);
+  const pricePerKg = total > 0 ? (totalPrice / total) : 0;
+
+  const k = Math.max(0, Math.round(num(els.cKilo)));
+  const h = Math.max(0, Math.round(num(els.cHalf)));
+  const q = Math.max(0, Math.round(num(els.cQuarter)));
+
+  const wKiloUsed = k * UNIT.Kilo;
+  const wHalfUsed = h * UNIT.Half;
+  const wQuarterUsed = q * UNIT.Quarter;
+  const used = wKiloUsed + wHalfUsed + wQuarterUsed;
+  const remaining = total - used;
+
+  // prices per category
+  const pKilo = wKiloUsed * pricePerKg;
+  const pHalf = wHalfUsed * pricePerKg;
+  const pQuarter = wQuarterUsed * pricePerKg;
+  const pTotal = pKilo + pHalf + pQuarter;
+
+  els.priceKilo.textContent = fmt(pKilo);
+  els.priceHalf.textContent = fmt(pHalf);
+  els.priceQuarter.textContent = fmt(pQuarter);
+  els.priceTotal.textContent = fmt(pTotal);
+
+  if (total > 0 && totalPrice > 0) {
+    els.priceHint.textContent = 'سعر الكيلو الواحد تقريبًا: ' + fmt(pricePerKg);
+  } else {
+    els.priceHint.textContent = 'أدخل الوزن الكلي والسعر الإجمالي ليُحسب سعر كل فئة تلقائيًا.';
+  }
+
+  els.remainingValue.textContent = fmt(remaining) + ' كغم';
+
+  els.remainingLine.classList.remove('over', 'zero');
+  if (Math.abs(remaining) < 0.001) {
+    els.remainingLine.classList.add('zero');
+    els.hint.textContent = 'تم توزيع كامل الوزن.';
+  } else if (remaining < 0) {
+    els.remainingLine.classList.add('over');
+    els.hint.textContent = 'تنبيه: مجموع القطع أكبر من الوزن الكلي بمقدار ' + fmt(Math.abs(remaining)) + ' كغم.';
+  } else {
+    els.hint.textContent = 'تبقّى ' + fmt(remaining) + ' كغم — اضغط "أكمل الباقي تلقائيًا" لتوزيعه مناصفة بين النص والربع، أو أكمله يدويًا.';
+  }
+
+  renderReceipt(total, totalPrice, pricePerKg, k, h, q, wKiloUsed, wHalfUsed, wQuarterUsed, remaining, pKilo, pHalf, pQuarter, pTotal);
+}
+
+function renderReceipt(total, totalPrice, pricePerKg, k, h, q, wKiloUsed, wHalfUsed, wQuarterUsed, remaining, pKilo, pHalf, pQuarter, pTotal){
+  els.rTotalWeight.textContent = fmt(total) + ' كغم';
+  els.rTotalPrice.textContent = fmt(totalPrice);
+  els.rPricePerKg.textContent = fmt(pricePerKg);
+  els.rKilo.textContent = k + ' قطعة — ' + fmt(wKiloUsed) + ' كغم';
+  els.rKiloPrice.textContent = fmt(pKilo);
+  els.rHalf.textContent = h + ' قطعة — ' + fmt(wHalfUsed) + ' كغم';
+  els.rHalfPrice.textContent = fmt(pHalf);
+  els.rQuarter.textContent = q + ' قطعة — ' + fmt(wQuarterUsed) + ' كغم';
+  els.rQuarterPrice.textContent = fmt(pQuarter);
+  els.rRemaining.textContent = fmt(remaining) + ' كغم';
+  els.rPriceTotal.textContent = fmt(pTotal);
+}
+
+els.btnPrint.addEventListener('click', () => {
+  els.rDate.textContent = new Date().toLocaleString('ar-IQ');
+  window.print();
+});
+
+els.total.addEventListener('input', recalc);
+els.totalPrice.addEventListener('input', recalc);
+
+// --- complete the remainder automatically: half of it as half-kg pieces, half as quarter-kg pieces ---
+els.btnSplitRemainder.addEventListener('click', () => {
+  const total = num(els.total);
+  const k = Math.max(0, Math.round(num(els.cKilo)));
+  let remaining = total - k * UNIT.Kilo;
+  if (remaining < 0) remaining = 0;
+
+  const halfShare = remaining / 2;
+  let halfCount = Math.round(halfShare / UNIT.Half);
+  if (halfCount < 0) halfCount = 0;
+
+  const usedByHalf = halfCount * UNIT.Half;
+  let leftover = remaining - usedByHalf;
+  let quarterCount = Math.round(leftover / UNIT.Quarter);
+  if (quarterCount < 0) quarterCount = 0;
+
+  els.cHalf.value = halfCount;
+  els.wHalf.value = fmt(halfCount * UNIT.Half);
+  els.cQuarter.value = quarterCount;
+  els.wQuarter.value = fmt(quarterCount * UNIT.Quarter);
+
+  recalc();
+});
+
+// --- random distribution across the full total weight ---
+let lastRandom = null;
+
+function generateRandom(){
+  const total = num(els.total);
+  let units = Math.round(total * 4); // in quarters
+  if (units < 0) units = 0;
+
+  const maxK = Math.floor(units / 4);
+  const k = Math.floor(Math.random() * (maxK + 1));
+  let remainder = units - k * 4;
+
+  const maxH = Math.floor(remainder / 2);
+  const h = Math.floor(Math.random() * (maxH + 1));
+  remainder = remainder - h * 2;
+
+  const q = remainder;
+
+  lastRandom = { k, h, q };
+  els.randKilo.textContent = k;
+  els.randHalf.textContent = h;
+  els.randQuarter.textContent = q;
+}
+
+els.btnRandom.addEventListener('click', generateRandom);
+
+els.btnApply.addEventListener('click', () => {
+  if (!lastRandom) generateRandom();
+  els.cKilo.value = lastRandom.k;
+  els.wKilo.value = fmt(lastRandom.k * UNIT.Kilo);
+  els.cHalf.value = lastRandom.h;
+  els.wHalf.value = fmt(lastRandom.h * UNIT.Half);
+  els.cQuarter.value = lastRandom.q;
+  els.wQuarter.value = fmt(lastRandom.q * UNIT.Quarter);
+  recalc();
+});
+
+recalcBags();
+recalc();
+generateRandom();
+</script>
+
+</body>
+</html>
