@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الإدارة الثانية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f2ead8; --paper-dark:#e8dec5; --ink:#2e2a22; --ink-soft:#6b6455;
+    --line:#cfc2a3; --rust:#a8492e; --rust-dark:#8a3a24; --olive:#5f6b3e; --olive-dark:#4a5430;
+    --amber:#b8862c; --amber-bg:#f3e2bd; --green-bg:#dbe3c6; --red-bg:#f0d3ca; --red:#a8402d;
+    --shadow: 0 18px 40px -20px rgba(46,42,34,.45);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Tajawal',sans-serif;
+    background-color:var(--paper-dark); color:var(--ink);
+    min-height:100vh; padding:24px 14px 60px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  .tabs{display:flex;gap:6px;margin-bottom:0;}
+  .tab-btn{
+    flex:1; padding:13px 10px; border-radius:10px 10px 0 0;
+    border:1px solid var(--line); border-bottom:none;
+    background:#ddd0ad; color:var(--ink-soft); font-weight:700;
+    cursor:pointer; font-family:'Tajawal',sans-serif; font-size:.92rem;
+  }
+  .tab-btn.active{background:var(--paper); color:var(--ink);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .receipt{ background:var(--paper); box-shadow:var(--shadow); position:relative; border-radius:2px; }
+  .receipt::before,.receipt::after{
+    content:""; display:block; height:16px;
+    background: radial-gradient(circle at 12px 0, transparent 9px, var(--paper-dark) 9.5px) repeat-x;
+    background-size:24px 16px;
+  }
+  .receipt::before{background-position:0 -8px;}
+  .receipt::after{background-position:0 8px; transform:rotate(180deg);}
+  .receipt-body{padding:8px 26px 30px;}
+  @media(min-width:640px){.receipt-body{padding:8px 46px 42px;}}
+
+  header.masthead{ text-align:center; padding:22px 0 18px; border-bottom:1px dashed var(--line); }
+  header.masthead h1{ margin:0 0 6px; font-size:1.5rem; font-weight:900; }
+  header.masthead p{ margin:0; color:var(--ink-soft); font-size:.88rem; }
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 0 0;}
+  .toolbar .btns{display:flex;gap:8px;flex-wrap:wrap;}
+  .toolbar .btn{padding:7px 12px;font-size:.76rem;}
+  .save-indicator{font-size:.72rem;color:var(--olive-dark);}
+
+  .dash{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:18px 0 6px; }
+  @media(min-width:640px){.dash{grid-template-columns:repeat(4,1fr);}}
+  .dash.dash3{grid-template-columns:repeat(3,1fr);}
+  .card{ background:#fffdf7; border:1px solid var(--line); border-radius:6px; padding:14px 12px; text-align:center; }
+  .card .label{font-size:.74rem;color:var(--ink-soft);margin-bottom:6px;}
+  .card .value{font-size:1.24rem;font-weight:700;direction:ltr;}
+  .card.match-ok{border-color:var(--olive);background:var(--green-bg);}
+  .card.match-bad{border-color:var(--red);background:var(--red-bg);}
+  .card .value.small{font-size:1rem;}
+
+  .denoms-mini{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 4px;}
+  .chip{font-size:.76rem;background:#fffdf7;border:1px solid var(--line);border-radius:20px;padding:4px 12px;direction:ltr;color:var(--ink-soft);}
+  .chip b{color:var(--ink);}
+
+  section{padding:22px 0;border-bottom:1px dashed var(--line);}
+  section:last-of-type{border-bottom:none;}
+  .sec-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .sec-num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--rust);color:#fdf6e8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;}
+  .sec-title h2{margin:0;font-size:1.04rem;font-weight:700;}
+  .sec-hint{margin:-8px 0 16px 36px;font-size:.8rem;color:var(--ink-soft);}
+
+  .denom-row{display:grid;grid-template-columns:70px 1fr 1fr 100px;gap:8px;align-items:center;padding:7px 0;}
+  .denom-row + .denom-row{border-top:1px dotted var(--line);}
+  .denom-row .dname{font-weight:700;direction:ltr;text-align:center;font-size:.92rem;}
+  .manual-row{display:grid;grid-template-columns:70px 1fr 100px;gap:8px;align-items:center;padding:6px 0;}
+  .manual-row+.manual-row{border-top:1px dotted var(--line);}
+  .manual-row .dname{font-weight:700;direction:ltr;text-align:center;font-size:.9rem;}
+  .field{position:relative;}
+  .field label{display:block;font-size:.68rem;color:var(--ink-soft);margin-bottom:2px;}
+  input[type=text],input[type=number],select{
+    width:100%; font-family:'Tajawal',sans-serif; background:#fffdf7;
+    border:1px solid var(--line); border-radius:5px; padding:9px 10px;
+    font-size:.94rem; color:var(--ink); direction:ltr; text-align:right;
+  }
+  select{direction:rtl;text-align:right;}
+  input:focus,select:focus{outline:2px solid var(--rust);outline-offset:1px;}
+  input::placeholder{color:#bdb397;}
+  .denom-sub{font-weight:700;direction:ltr;text-align:center;font-size:.9rem;color:var(--olive-dark);}
+  .manual-sub{font-weight:700;direction:ltr;text-align:center;font-size:.85rem;}
+
+  .row-total{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-weight:700;}
+  .row-total .n{font-size:1.15rem;direction:ltr;}
+
+  .grid2{display:grid;grid-template-columns:1fr;gap:12px;}
+  @media(min-width:640px){.grid2{grid-template-columns:1fr 1fr;}}
+  .field-block label{display:block;font-size:.8rem;margin-bottom:5px;color:var(--ink-soft);}
+  .words-preview{font-size:.77rem;color:var(--olive-dark);margin-top:5px;min-height:16px;}
+
+  .radio-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;}
+  .radio-row label{display:flex;align-items:center;gap:6px;font-size:.86rem;cursor:pointer;}
+  .radio-row input{width:auto;}
+
+  .btn{ font-family:'Tajawal',sans-serif; border:none;border-radius:6px; padding:11px 18px;
+    font-size:.9rem;font-weight:700; cursor:pointer; color:#fdf6e8; transition:transform .08s ease, opacity .15s ease; }
+  .btn:active{transform:scale(.97);}
+  .btn.rust{background:var(--rust);} .btn.rust:hover{background:var(--rust-dark);}
+  .btn.olive{background:var(--olive);} .btn.olive:hover{background:var(--olive-dark);}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn.ghost:hover{background:#fffdf7;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+
+  .breakdown-box{margin-top:16px;background:#fffdf7;border:1px solid var(--line);border-radius:6px;padding:14px 16px;}
+  .breakdown-box .warn{color:var(--red);font-size:.85rem;font-weight:700;margin-bottom:8px;}
+  .bd-row{display:flex;justify-content:space-between;font-size:.88rem;padding:3px 0;direction:ltr;}
+  .bd-row b{direction:rtl;}
+
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
+  .badge.wait{background:var(--amber-bg);color:var(--amber);}
+  .badge.got{background:var(--green-bg);color:var(--olive-dark);}
+  .badge.sync-ok{background:var(--green-bg);color:var(--olive-dark);}
+  .badge.sync-bad{background:var(--red-bg);color:var(--red);}
+  .badge.type-in{background:var(--green-bg);color:var(--olive-dark);}
+  .badge.type-out{background:#e3d3d8;color:var(--rust-dark);}
+
+  .tx{background:#fffdf7;border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:10px;}
+  .tx-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;}
+  .tx-name{font-weight:700;font-size:.98rem;}
+  .tx-meta{font-size:.78rem;color:var(--ink-soft);margin-top:2px;}
+  .tx-amount{font-weight:700;direction:ltr;font-size:1.05rem;}
+  .tx-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .tx-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .tx-actions .btn{padding:7px 12px;font-size:.78rem;}
+  .empty{color:var(--ink-soft);font-size:.88rem;text-align:center;padding:14px 0;}
+
+  .reminder-banner{background:var(--amber-bg);border:1px solid var(--amber);color:#5c4415;border-radius:6px;padding:12px 16px;font-size:.85rem;font-weight:700;margin-bottom:14px;}
+  footer.foot{text-align:center;padding-top:18px;color:var(--ink-soft);font-size:.76rem;}
+  #stmtTable td{padding:8px 6px;border-bottom:1px dotted var(--line);direction:ltr;text-align:center;}
+  #stmtTable td:first-child{direction:rtl;text-align:right;}
+  #stmtTable tbody tr:hover{background:#fffdf7;}
+
+  #print-area{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #print-area, #print-area *{visibility:visible;}
+    #print-area{display:block;position:absolute;top:0;right:0;width:80mm;font-family:'Tajawal',sans-serif;color:#000;padding:6px;}
+    @page{size:80mm auto;margin:2mm;}
+    .p-line{border-top:1px dashed #000;margin:6px 0;}
+    .p-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;direction:ltr;}
+    .p-row b{direction:rtl;}
+    .p-title{text-align:center;font-weight:900;font-size:14px;margin-bottom:4px;}
+    .p-sub{text-align:center;font-size:10px;color:#333;margin-bottom:8px;}
+    table.p-table{width:100%;border-collapse:collapse;font-size:10px;}
+    table.p-table th,table.p-table td{border-bottom:1px solid #999;padding:3px 2px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabBtnTreasury">الخزينة والصندوق</button>
+    <button class="tab-btn" id="tabBtnStatements">القوائم والكشوفات</button>
+    <button class="tab-btn" id="tabBtnSide">حسابات جانبية</button>
+  </div>
+
+  <!-- ============ PANEL 1: TREASURY ============ -->
+  <div class="panel active" id="panelTreasury">
+  <div class="receipt">
+    <div class="receipt-body">
+
+      <header class="masthead">
+        <h1>الإدارة الثانية</h1>
+        <p>متابعة النقد الفعلي وحالة كل سند</p>
+      </header>
+
+      <div class="toolbar">
+        <span class="save-indicator" id="saveIndicator">جارٍ التحقق من ملف البيانات...</span>
+        <div class="btns">
+          <button class="btn rust" id="btnLinkNew" style="display:none;">🔗 إنشاء وربط ملف بيانات</button>
+          <button class="btn ghost" id="btnLinkExisting" style="display:none;">📂 ربط ملف بيانات موجود</button>
+          <button class="btn rust" id="btnReconnect" style="display:none;">🔓 إعادة الاتصال بالملف</button>
+          <button class="btn ghost" id="btnExport">⬇ نسخة احتياطية يدوية</button>
+          <button class="btn ghost" id="btnImportTrigger">⬆ استيراد نسخة</button>
+          <input type="file" id="btnImport" accept="application/json" style="display:none;">
+        </div>
+      </div>
+      <div class="sec-hint" id="fileUnsupportedHint" style="display:none;margin:6px 0 0;">
+        هذا المتصفح لا يدعم الربط المباشر بملف على الجهاز (مدعوم في Chrome / Edge على اللابتوب). سيتم الاعتماد على الحفظ التلقائي داخل المتصفح + النسخة الاحتياطية اليدوية.
+      </div>
+
+      <div class="dash" id="dash">
+        <div class="card"><div class="label">النقد في الصندوق الإلكتروني</div><div class="value" id="dashBox">—</div></div>
+        <div class="card"><div class="label">النقد الفعلي في الخزينة</div><div class="value" id="dashTreasury">—</div></div>
+        <div class="card"><div class="label">عدد الأوراق النقدية</div><div class="value" id="dashCount">—</div></div>
+        <div class="card" id="dashMatchCard"><div class="label">حالة التطابق</div><div class="value small" id="dashMatch">—</div></div>
+      </div>
+      <div class="denoms-mini" id="denomsMini"></div>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">١</span><h2>رصيد الصندوق الإلكتروني</h2></div>
+        <div class="sec-hint">الرقم كما يظهر في برنامجك المحاسبي المعزول — يُدخل يدويًا.</div>
+        <div class="field-block" style="max-width:260px;">
+          <label for="boxBalance">الرصيد الحالي في الصندوق (د.ع)</label>
+          <input type="number" id="boxBalance" placeholder="أدخل القيمة">
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">٢</span><h2>محتويات الخزينة الفعلية حسب الفئة</h2></div>
+        <div class="sec-hint">اكتب في «العدد» أو في «القيمة الإجمالية» لأي فئة — الحقل الآخر يتحدث تلقائيًا.</div>
+        <div id="denomTable"></div>
+        <div class="row-total"><span>إجمالي النقد الفعلي في الخزينة</span><span class="n" id="treasuryTotalLbl">0 د.ع</span></div>
+      </section>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">٣</span><h2>عملية جديدة</h2></div>
+        <div class="sec-hint">اختر نوع العملية وطريقة توزيع الفئات.</div>
+
+        <div class="radio-row">
+          <label><input type="radio" name="opType" value="disburse" checked> سند صرف (دفع لشخص)</label>
+          <label><input type="radio" name="opType" value="receive"> سند قبض (استلام/إيداع أموال)</label>
+        </div>
+
+        <div class="grid2">
+          <div class="field-block">
+            <label for="txName" id="txNameLabel">اسم الشخص</label>
+            <input type="text" id="txName" placeholder="أدخل الاسم">
+          </div>
+          <div class="field-block">
+            <label for="txAmount">المبلغ (د.ع)</label>
+            <input type="number" id="txAmount" placeholder="أدخل القيمة">
+            <div class="words-preview" id="txAmountWords"></div>
+          </div>
+          <div class="field-block">
+            <label for="txSource" id="txSourceLabel">مصدر الصرف</label>
+            <select id="txSource">
+              <option value="both">من كلاهما (الصندوق والخزينة معًا)</option>
+              <option value="treasury">من الخزينة فقط (نقد فعلي فقط)</option>
+              <option value="box">من الصندوق فقط (تسجيل في النظام فقط)</option>
+            </select>
+          </div>
+          <div class="field-block">
+            <label for="txStatus">حالة العملية</label>
+            <select id="txStatus">
+              <option value="wait">لم يُستلم بعد</option>
+              <option value="got">تم الاستلام</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="radio-row" style="margin-top:16px;">
+          <label><input type="radio" name="distMethod" value="auto" checked> تلقائي (الأعلى قيمة أولًا) — افتراضي</label>
+          <label><input type="radio" name="distMethod" value="manual"> يدوي — أحدد الفئات بنفسي</label>
+        </div>
+
+        <div id="autoControls" class="btn-row">
+          <button class="btn rust" id="btnAuto">توزيع تلقائي حسب الفئات</button>
+          <button class="btn ghost" id="btnRandom">اقتراح توزيع بديل</button>
+        </div>
+
+        <div id="manualBox" style="display:none;"></div>
+        <div class="breakdown-box" id="breakdownBox" style="display:none;"></div>
+
+        <div class="btn-row">
+          <button class="btn olive" id="btnConfirm" disabled>تنفيذ الصرف وتسجيل السند</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">٤</span><h2>سجل العمليات</h2></div>
+        <div id="reminderZone"></div>
+        <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+          <button class="btn ghost" id="btnPrintToday">🖨 طباعة كشف اليوم</button>
+          <button class="btn ghost" id="btnPrintAll">🖨 طباعة كل السجل</button>
+        </div>
+        <div id="txList"><div class="empty">لا توجد عمليات بعد</div></div>
+      </section>
+
+      <footer class="foot">جميع الأرقام تُحفظ محليًا في متصفحك على هذا الجهاز فقط</footer>
+    </div>
+  </div>
+  </div>
+
+  <!-- ============ PANEL 2: STATEMENTS ============ -->
+  <div class="panel" id="panelStatements">
+  <div class="receipt">
+    <div class="receipt-body">
+      <header class="masthead">
+        <h1>القوائم والكشوفات</h1>
+        <p>كل عمليات الخزينة والصندوق — بحسب التاريخ الذي تختاره</p>
+      </header>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">١</span><h2>تصفية حسب التاريخ</h2></div>
+        <div class="radio-row" id="stmtRangeButtons">
+          <label><input type="radio" name="stmtRange" value="today" checked> اليوم</label>
+          <label><input type="radio" name="stmtRange" value="week"> آخر ٧ أيام</label>
+          <label><input type="radio" name="stmtRange" value="month"> آخر ٣٠ يومًا</label>
+          <label><input type="radio" name="stmtRange" value="all"> كل السجل</label>
+          <label><input type="radio" name="stmtRange" value="custom"> نطاق مخصص</label>
+        </div>
+        <div class="grid2" id="stmtCustomRange" style="display:none;">
+          <div class="field-block"><label for="stmtFrom">من تاريخ</label><input type="date" id="stmtFrom"></div>
+          <div class="field-block"><label for="stmtTo">إلى تاريخ</label><input type="date" id="stmtTo"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn olive" id="btnAddQuick">➕ إضافة مبلغ إلى الخزينة (سند قبض)</button>
+          <button class="btn ghost" id="btnPrintStmt">🖨 طباعة الكشف المعروض</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">٢</span><h2>جدول العمليات</h2></div>
+        <div class="dash dash3" id="stmtTotals">
+          <div class="card"><div class="label">إجمالي الصرف</div><div class="value" id="stmtOut">—</div></div>
+          <div class="card"><div class="label">إجمالي القبض</div><div class="value" id="stmtIn">—</div></div>
+          <div class="card"><div class="label">عدد العمليات</div><div class="value" id="stmtCount">—</div></div>
+        </div>
+        <div style="overflow-x:auto;margin-top:14px;">
+          <table style="width:100%;border-collapse:collapse;font-size:.85rem;" id="stmtTable">
+            <thead>
+              <tr style="border-bottom:2px solid var(--line);text-align:right;">
+                <th style="padding:8px 6px;">الاسم</th>
+                <th style="padding:8px 6px;">المبلغ</th>
+                <th style="padding:8px 6px;">النوع</th>
+                <th style="padding:8px 6px;">المصدر</th>
+                <th style="padding:8px 6px;">الحالة</th>
+                <th style="padding:8px 6px;">التاريخ والوقت</th>
+              </tr>
+            </thead>
+            <tbody id="stmtTbody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="stmtEmpty" style="display:none;">لا توجد عمليات ضمن هذا النطاق</div>
+      </section>
+
+      <footer class="foot">هذا الكشف مبني على سجل الخزينة والصندوق فقط</footer>
+    </div>
+  </div>
+  </div>
+
+  <!-- ============ PANEL 3: SIDE LEDGER ============ -->
+  <div class="panel" id="panelSide">
+  <div class="receipt">
+    <div class="receipt-body">
+      <header class="masthead">
+        <h1>حسابات جانبية</h1>
+        <p>عمليات حسابية منفصلة تمامًا عن الخزينة والصندوق</p>
+      </header>
+
+      <div class="dash dash3">
+        <div class="card"><div class="label">إجمالي الوارد</div><div class="value" id="sideIn">—</div></div>
+        <div class="card"><div class="label">إجمالي الصادر</div><div class="value" id="sideOut">—</div></div>
+        <div class="card" id="sideBalCard"><div class="label">الرصيد الحالي</div><div class="value" id="sideBal">—</div></div>
+      </div>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">١</span><h2>إضافة حركة</h2></div>
+        <div class="grid2">
+          <div class="field-block">
+            <label for="sideDesc">الوصف</label>
+            <input type="text" id="sideDesc" placeholder="أدخل الوصف">
+          </div>
+          <div class="field-block">
+            <label for="sideAmount">المبلغ (د.ع)</label>
+            <input type="number" id="sideAmount" placeholder="أدخل القيمة">
+            <div class="words-preview" id="sideAmountWords"></div>
+          </div>
+          <div class="field-block">
+            <label for="sideType">نوع الحركة</label>
+            <select id="sideType">
+              <option value="in">وارد</option>
+              <option value="out">صادر</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn olive" id="btnSideAdd">إضافة الحركة</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-title"><span class="sec-num">٢</span><h2>سجل الحركات</h2></div>
+        <div id="sideList"><div class="empty">لا توجد حركات بعد</div></div>
+      </section>
+      <footer class="foot">هذا السجل مستقل تمامًا عن أرقام الخزينة والصندوق</footer>
+    </div>
+  </div>
+  </div>
+
+</div>
+
+<div id="print-area"></div>
+
+<script>
+const DENOMS = [50000,25000,10000,5000,1000,500,250];
+const STORAGE_KEY = 'iqTreasuryToolV2';
+
+const state = {
+  box: null, treasury: {}, transactions: [],
+  proposedBreakdown: null, proposedBreaks: [], manualCounts: {},
+  nextId: 1
+};
+DENOMS.forEach(d=> state.treasury[d] = null);
+
+const side = { entries: [], nextId: 1 };
+
+function fmt(n){ if(n===null||n===undefined||isNaN(n)) return '0'; return Math.round(n).toLocaleString('en-US'); }
+function num(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+/* ---------- Arabic number to words ---------- */
+const onesW=['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة'];
+const teenW=['عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر'];
+const tensW=['','','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
+const hundW=['','مائة','مئتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
+function threeDigitWords(n){
+  const h=Math.floor(n/100), r=n%100; const out=[];
+  if(h>0) out.push(hundW[h]);
+  if(r>0){
+    if(r<10) out.push(onesW[r]);
+    else if(r<20) out.push(teenW[r-10]);
+    else { const t=Math.floor(r/10), o=r%10; out.push(o===0? tensW[t] : onesW[o]+' و'+tensW[t]); }
+  }
+  return out.join(' و');
+}
+function numberToArabicWords(num_){
+  let n = Math.round(Math.abs(num_));
+  if(n===0) return 'صفر دينار عراقي';
+  const scales=[
+    {v:1000000000,one:'مليار',two:'ملياران',few:'مليارات',many:'مليارًا'},
+    {v:1000000,one:'مليون',two:'مليونان',few:'ملايين',many:'مليونًا'},
+    {v:1000,one:'ألف',two:'ألفان',few:'آلاف',many:'ألفاً'}
+  ];
+  const parts=[];
+  for(const s of scales){
+    const c = Math.floor(n/s.v);
+    if(c>0){
+      let w;
+      if(c===1) w=s.one;
+      else if(c===2) w=s.two;
+      else if(c>=3&&c<=10) w=threeDigitWords(c)+' '+s.few;
+      else w=threeDigitWords(c)+' '+s.many;
+      parts.push(w);
+      n=n%s.v;
+    }
+  }
+  if(n>0) parts.push(threeDigitWords(n));
+  return parts.join(' و')+' دينار عراقي';
+}
+function attachWordsPreview(inputEl, previewEl){
+  inputEl.addEventListener('input', ()=>{
+    const v = num(inputEl.value);
+    previewEl.textContent = v>0 ? (fmt(v)+' د.ع — '+numberToArabicWords(v)) : '';
+  });
+}
+
+/* ---------- persistence ---------- */
+/* Layer 1: instant local cache (always on, survives normal reloads in this browser) */
+function saveLocalCache(payload){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); }catch(e){ /* storage unavailable */ }
+}
+function loadLocalCache(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+
+/* Layer 2: a real file on disk (Chrome/Edge desktop) via the File System Access API,
+   with the file handle itself stored in IndexedDB so it survives closing the tab/browser. */
+let fileHandle = null;
+let pendingHandle = null;
+const FS_SUPPORTED = 'showSaveFilePicker' in window;
+
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open('treasuryToolDB', 1);
+    req.onupgradeneeded = ()=> req.result.createObjectStore('handles');
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSet(key, val){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readwrite');
+    tx.objectStore('handles').put(val, key);
+    tx.oncomplete = ()=> resolve();
+    tx.onerror = ()=> reject(tx.error);
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readonly');
+    const req = tx.objectStore('handles').get(key);
+    req.onsuccess = ()=> resolve(req.result || null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+function currentPayload(){
+  return { treasury: { box: state.box, treasury: state.treasury, transactions: state.transactions, nextId: state.nextId }, side: side };
+}
+function applyPayload(payload){
+  if(payload.treasury){
+    state.box = payload.treasury.box ?? null;
+    DENOMS.forEach(d=>{ state.treasury[d] = (payload.treasury.treasury && payload.treasury.treasury[d]) ?? null; });
+    state.transactions = payload.treasury.transactions || [];
+    state.nextId = payload.treasury.nextId || (state.transactions.length+1);
+  }
+  if(payload.side){ side.entries = payload.side.entries || []; side.nextId = payload.side.nextId || (side.entries.length+1); }
+}
+function setIndicator(text, ok){
+  const el = document.getElementById('saveIndicator');
+  el.textContent = text;
+  el.style.color = ok ? 'var(--olive-dark)' : 'var(--red)';
+}
+async function writeToFile(){
+  if(!fileHandle) return;
+  try{
+    const w = await fileHandle.createWritable();
+    await w.write(JSON.stringify(currentPayload(), null, 2));
+    await w.close();
+    setIndicator('محفوظ في ملف: '+(fileHandle.name||'treasury-data.json')+' ✅', true);
+  }catch(e){
+    setIndicator('تعذّر الكتابة في الملف — يلزم إعادة الاتصال', false);
+    document.getElementById('btnReconnect').style.display='inline-block';
+  }
+}
+function saveAll(){
+  const payload = currentPayload();
+  saveLocalCache(payload);          // always, instantly
+  if(fileHandle) writeToFile();     // also mirror to the real linked file, if connected
+}
+async function loadAll(){
+  // start from whatever is cached locally so the UI is never empty while we check the file
+  const cached = loadLocalCache();
+  if(cached) applyPayload(cached);
+
+  if(!FS_SUPPORTED){
+    document.getElementById('fileUnsupportedHint').style.display='block';
+    document.getElementById('btnLinkNew').style.display='none';
+    document.getElementById('btnLinkExisting').style.display='none';
+    setIndicator('الحفظ التلقائي داخل هذا المتصفح فقط — لا يوجد ملف مرتبط', false);
+    return;
+  }
+
+  const saved = await idbGet('dataFileHandle');
+  if(!saved){
+    document.getElementById('btnLinkNew').style.display='inline-block';
+    document.getElementById('btnLinkExisting').style.display='inline-block';
+    setIndicator('لا يوجد ملف مرتبط بعد — اربط ملفًا لحفظ دائم', false);
+    return;
+  }
+  const perm = await saved.queryPermission({mode:'readwrite'});
+  if(perm === 'granted'){
+    fileHandle = saved;
+    try{
+      const f = await fileHandle.getFile();
+      const text = await f.text();
+      if(text.trim()){ applyPayload(JSON.parse(text)); }
+      setIndicator('متصل بالملف: '+(fileHandle.name||'treasury-data.json')+' ✅', true);
+    }catch(e){ setIndicator('تعذّرت قراءة الملف المرتبط', false); }
+  } else {
+    pendingHandle = saved;
+    document.getElementById('btnReconnect').style.display='inline-block';
+    setIndicator('اضغط "إعادة الاتصال بالملف" لمتابعة الحفظ في: '+(saved.name||'الملف السابق'), false);
+  }
+}
+async function linkNewFile(){
+  try{
+    const handle = await window.showSaveFilePicker({
+      suggestedName: 'treasury-data.json',
+      types: [{ description:'JSON', accept:{'application/json':['.json']} }]
+    });
+    fileHandle = handle;
+    await idbSet('dataFileHandle', handle);
+    await writeToFile();
+    document.getElementById('btnLinkNew').style.display='none';
+    document.getElementById('btnLinkExisting').style.display='none';
+    document.getElementById('btnReconnect').style.display='none';
+  }catch(e){ /* user cancelled the picker */ }
+}
+async function linkExistingFile(){
+  try{
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description:'JSON', accept:{'application/json':['.json']} }]
+    });
+    const perm = await handle.requestPermission({mode:'readwrite'});
+    if(perm!=='granted'){ alert('لم يتم منح صلاحية الكتابة لهذا الملف'); return; }
+    fileHandle = handle;
+    await idbSet('dataFileHandle', handle);
+    const f = await fileHandle.getFile();
+    const text = await f.text();
+    if(text.trim()){ applyPayload(JSON.parse(text)); }
+    document.getElementById('boxBalance').value = state.box===null?'':state.box;
+    renderDenomTableValues(); recalcAll(); renderTransactions(); renderStatements(); renderSide();
+    document.getElementById('btnLinkNew').style.display='none';
+    document.getElementById('btnLinkExisting').style.display='none';
+    document.getElementById('btnReconnect').style.display='none';
+    setIndicator('متصل بالملف: '+(fileHandle.name||'الملف المختار')+' ✅', true);
+  }catch(e){ /* user cancelled the picker */ }
+}
+async function reconnectFile(){
+  if(!pendingHandle) return;
+  try{
+    const perm = await pendingHandle.requestPermission({mode:'readwrite'});
+    if(perm!=='granted'){ alert('لم يتم منح صلاحية الكتابة'); return; }
+    fileHandle = pendingHandle;
+    const f = await fileHandle.getFile();
+    const text = await f.text();
+    if(text.trim()){ applyPayload(JSON.parse(text)); }
+    document.getElementById('boxBalance').value = state.box===null?'':state.box;
+    renderDenomTableValues(); recalcAll(); renderTransactions(); renderStatements(); renderSide();
+    document.getElementById('btnReconnect').style.display='none';
+    setIndicator('متصل بالملف: '+(fileHandle.name||'treasury-data.json')+' ✅', true);
+  }catch(e){ setIndicator('تعذّرت إعادة الاتصال', false); }
+}
+function exportBackup(){
+  const payload = { treasury: { box: state.box, treasury: state.treasury, transactions: state.transactions, nextId: state.nextId }, side: side };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='treasury-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const payload = JSON.parse(reader.result);
+      if(payload.treasury){
+        state.box = payload.treasury.box ?? null;
+        DENOMS.forEach(d=>{ state.treasury[d] = (payload.treasury.treasury && payload.treasury.treasury[d]) ?? null; });
+        state.transactions = payload.treasury.transactions || [];
+        state.nextId = payload.treasury.nextId || (state.transactions.length+1);
+      }
+      if(payload.side){ side.entries = payload.side.entries || []; side.nextId = payload.side.nextId || (side.entries.length+1); }
+      document.getElementById('boxBalance').value = state.box===null?'':state.box;
+      renderDenomTableValues(); recalcAll(); renderTransactions(); renderStatements(); renderSide(); saveAll();
+      alert('تم استيراد النسخة الاحتياطية بنجاح');
+    }catch(e){ alert('تعذّر قراءة الملف — تأكد أنه ملف نسخة احتياطية صحيح'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- treasury helpers ---------- */
+function treasuryAvailable(){ const av={}; DENOMS.forEach(d=> av[d]=state.treasury[d]||0); return av; }
+function unlimitedAvailable(){ const av={}; DENOMS.forEach(d=> av[d]=Infinity); return av; }
+function treasuryTotal(){ return DENOMS.reduce((s,d)=> s+(state.treasury[d]||0)*d, 0); }
+function treasuryCount(){ return DENOMS.reduce((s,d)=> s+(state.treasury[d]||0), 0); }
+
+function renderDenomTable(){
+  const el = document.getElementById('denomTable');
+  el.innerHTML = DENOMS.map(d => `
+    <div class="denom-row">
+      <div class="dname">${fmt(d)}</div>
+      <div class="field"><label>العدد</label><input type="number" min="0" step="1" placeholder="أدخل القيمة" data-denom="${d}" class="cnt-input"></div>
+      <div class="field"><label>القيمة الإجمالية</label><input type="number" min="0" placeholder="أدخل القيمة" data-denom="${d}" class="val-input"></div>
+      <div class="denom-sub" data-sub="${d}">0 د.ع</div>
+    </div>`).join('');
+  el.querySelectorAll('.cnt-input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const d=parseInt(e.target.dataset.denom);
+      const c = e.target.value===''? null : Math.max(0, Math.round(num(e.target.value)));
+      state.treasury[d]=c;
+      el.querySelector(`.val-input[data-denom="${d}"]`).value = c===null?'':c*d;
+      recalcAll();
+    });
+  });
+  el.querySelectorAll('.val-input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const d=parseInt(e.target.dataset.denom);
+      if(e.target.value===''){ state.treasury[d]=null; el.querySelector(`.cnt-input[data-denom="${d}"]`).value=''; recalcAll(); return; }
+      const c = Math.round(num(e.target.value)/d);
+      state.treasury[d]=c;
+      el.querySelector(`.cnt-input[data-denom="${d}"]`).value=c;
+      recalcAll();
+    });
+  });
+}
+function renderDenomTableValues(){
+  DENOMS.forEach(d=>{
+    const c = state.treasury[d];
+    const cntInput = document.querySelector(`.cnt-input[data-denom="${d}"]`);
+    const valInput = document.querySelector(`.val-input[data-denom="${d}"]`);
+    if(cntInput) cntInput.value = c===null||c===undefined? '' : c;
+    if(valInput) valInput.value = c===null||c===undefined? '' : c*d;
+    const sub = document.querySelector(`[data-sub="${d}"]`);
+    if(sub) sub.textContent = fmt((c||0)*d)+' د.ع';
+  });
+}
+
+function renderDashboard(){
+  document.getElementById('dashBox').textContent = state.box===null? '—' : fmt(state.box)+' د.ع';
+  document.getElementById('dashTreasury').textContent = fmt(treasuryTotal())+' د.ع';
+  document.getElementById('dashCount').textContent = fmt(treasuryCount())+' ورقة';
+  const matchCard = document.getElementById('dashMatchCard');
+  const matchEl = document.getElementById('dashMatch');
+  if(state.box===null){ matchCard.className='card'; matchEl.textContent='أدخل رصيد الصندوق'; }
+  else {
+    const diff = treasuryTotal()-state.box;
+    if(diff===0){ matchCard.className='card match-ok'; matchEl.textContent='مطابق ✅'; }
+    else { matchCard.className='card match-bad'; matchEl.textContent=(diff>0?'زيادة في الخزينة ':'نقص في الخزينة ')+fmt(Math.abs(diff)); }
+  }
+  document.getElementById('treasuryTotalLbl').textContent = fmt(treasuryTotal())+' د.ع';
+  const mini = document.getElementById('denomsMini');
+  mini.innerHTML = DENOMS.filter(d=>(state.treasury[d]||0)>0).map(d=>`<span class="chip">${fmt(d)} × <b>${state.treasury[d]}</b></span>`).join('') || '<span class="chip">لا توجد فئات مسجلة بعد</span>';
+}
+function recalcAll(){ renderDashboard(); updateConfirmState(); saveAll(); }
+
+/* ---------- distribution engine ---------- */
+function greedyDistribution(amount, available){
+  let remaining=amount; const result={};
+  DENOMS.forEach(d=>{ const c=Math.min(available[d]||0, Math.floor(remaining/d)); result[d]=c; remaining-=c*d; });
+  return {result, shortage:remaining};
+}
+function randomDistribution(amount, available){
+  for(let a=0;a<300;a++){
+    let remaining=amount; const result={}; const order=[...DENOMS].sort(()=>Math.random()-0.5); let ok=true;
+    for(let i=0;i<order.length;i++){
+      const d=order[i]; const maxAvail=available[d]||0; const isLast=i===order.length-1; let c;
+      if(isLast){ c=remaining/d; if(!Number.isInteger(c)||c<0||c>maxAvail){ok=false;break;} }
+      else { const maxPossible=Math.min(maxAvail, Math.floor(remaining/d)); c=Math.floor(Math.random()*(maxPossible+1)); }
+      result[d]=c; remaining-=c*d;
+    }
+    if(ok && remaining===0) return {result, shortage:0};
+  }
+  return null;
+}
+function breakOneNote(D){
+  const smaller = DENOMS.filter(d=>d<D).sort((a,b)=>b-a);
+  if(smaller.length===0) return null;
+  let rem=D; const parts={};
+  smaller.forEach(d=>{ const c=Math.floor(rem/d); if(c>0){parts[d]=c; rem-=c*d;} });
+  return rem===0 ? parts : null;
+}
+function planBreaks(amount, available){
+  let avail={...available}; let dist=greedyDistribution(amount, avail); const breaks=[]; let guard=0;
+  while(dist.shortage!==0 && guard<20){
+    guard++; let broke=false;
+    for(const D of [...DENOMS].sort((a,b)=>a-b)){
+      if((avail[D]||0)>=1){
+        const parts=breakOneNote(D); if(!parts) continue;
+        avail[D]-=1; Object.keys(parts).forEach(d=>{ avail[d]=(avail[d]||0)+parts[d]; });
+        breaks.push({from:D, parts}); broke=true; break;
+      }
+    }
+    if(!broke) break;
+    dist=greedyDistribution(amount, avail);
+  }
+  return {avail, breaks, dist};
+}
+function applyBreaks(breaks){
+  if(!breaks || breaks.length===0) return;
+  const fromCounts={}, partsTotal={};
+  breaks.forEach(b=>{ fromCounts[b.from]=(fromCounts[b.from]||0)+1; Object.entries(b.parts).forEach(([d,c])=>{ partsTotal[d]=(partsTotal[d]||0)+c; }); });
+  Object.entries(fromCounts).forEach(([D,c])=>{ state.treasury[D]=(state.treasury[D]||0)-c; });
+  Object.entries(partsTotal).forEach(([d,c])=>{ state.treasury[d]=(state.treasury[d]||0)+c; });
+}
+
+function renderBreakdown(dist, amount, breaks){
+  const box=document.getElementById('breakdownBox'); box.style.display='block'; let html='';
+  if(dist.shortage!==0) html += `<div class="warn">لا يمكن تكوين هذا المبلغ بالضبط من الفئات المتوفرة — الفرق: ${fmt(Math.abs(dist.shortage))} د.ع</div>`;
+  if(breaks && breaks.length>0){
+    const agg={};
+    breaks.forEach(b=>{ agg[b.from]=agg[b.from]||{count:0,parts:{}}; agg[b.from].count++; Object.keys(b.parts).forEach(d=>{ agg[b.from].parts[d]=(agg[b.from].parts[d]||0)+b.parts[d]; }); });
+    html += `<div class="warn" style="color:var(--rust);">🔄 يلزم أولًا تفكيك الفئات التالية:</div>`;
+    Object.keys(agg).forEach(D=>{
+      const partsStr = Object.entries(agg[D].parts).map(([d,c])=>`${fmt(d)}×${c}`).join(' + ');
+      html += `<div class="bd-row"><b>فئة ${fmt(D)} (عدد ${agg[D].count})</b><span>← ${partsStr}</span></div>`;
+    });
+    html += `<div style="border-top:1px dashed var(--line);margin:8px 0;"></div><div class="bd-row"><b>توزيع العملية بعد التفكيك</b><span></span></div>`;
+  }
+  DENOMS.forEach(d=>{ const c=dist.result[d]||0; if(c>0) html += `<div class="bd-row"><b>فئة ${fmt(d)} × ${c}</b><span>${fmt(c*d)} د.ع</span></div>`; });
+  html += `<div class="bd-row" style="border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;"><b>الإجمالي المطلوب</b><span>${fmt(amount)} د.ع</span></div>`;
+  box.innerHTML = html;
+  state.proposedBreakdown = dist.shortage===0 ? dist.result : null;
+  state.proposedBreaks = dist.shortage===0 ? (breaks||[]) : [];
+  updateConfirmState();
+}
+
+function opType(){ return document.querySelector('input[name=opType]:checked').value; }
+function distMethod(){ return document.querySelector('input[name=distMethod]:checked').value; }
+function needsDenoms(){ const src=document.getElementById('txSource').value; return src==='treasury'||src==='both'; }
+
+function refreshOpLabels(){
+  const t = opType();
+  const isDisburse = t==='disburse';
+  document.getElementById('txNameLabel').textContent = isDisburse? 'اسم الشخص' : 'اسم الجهة / المصدر';
+  document.getElementById('txSourceLabel').textContent = isDisburse? 'مصدر الصرف' : 'إضافة إلى';
+  const statusSel = document.getElementById('txStatus');
+  statusSel.innerHTML = isDisburse
+    ? `<option value="wait">لم يُستلم بعد</option><option value="got">تم الاستلام</option>`
+    : `<option value="wait">بانتظار الإيداع</option><option value="got">تم الإيداع</option>`;
+  document.getElementById('btnConfirm').textContent = isDisburse? 'تنفيذ الصرف وتسجيل السند' : 'تنفيذ القبض وتسجيل السند';
+  document.querySelectorAll('input[name=opType]').forEach(r=>{}); // no-op, kept for clarity
+}
+document.querySelectorAll('input[name=opType]').forEach(r=> r.addEventListener('change', ()=>{
+  refreshOpLabels();
+  document.getElementById('breakdownBox').style.display='none';
+  state.proposedBreakdown=null; state.proposedBreaks=[];
+  if(distMethod()==='manual') renderManualBox();
+  updateConfirmState();
+}));
+document.querySelectorAll('input[name=distMethod]').forEach(r=> r.addEventListener('change', ()=>{
+  const m = distMethod();
+  document.getElementById('autoControls').style.display = m==='auto' ? 'flex' : 'none';
+  document.getElementById('manualBox').style.display = m==='manual' ? 'block' : 'none';
+  document.getElementById('breakdownBox').style.display='none';
+  state.proposedBreakdown=null; state.proposedBreaks=[];
+  if(m==='manual') renderManualBox();
+  updateConfirmState();
+}));
+
+/* ---------- manual distribution mode ---------- */
+function renderManualBox(){
+  const wrap = document.getElementById('manualBox');
+  if(!needsDenoms()){
+    wrap.innerHTML = '<div class="sec-hint" style="margin:6px 0 0;">لا حاجة لتحديد فئات عند اختيار «الصندوق فقط».</div>';
+    state.manualCounts = {}; updateConfirmState(); return;
+  }
+  state.manualCounts = {};
+  wrap.innerHTML = DENOMS.map(d=>`
+    <div class="manual-row">
+      <div class="dname">${fmt(d)}</div>
+      <div class="field"><input type="number" min="0" step="1" placeholder="أدخل العدد" data-denom="${d}" class="manual-input"></div>
+      <div class="manual-sub" data-manual-sub="${d}">0 د.ع</div>
+    </div>`).join('') + `<div class="row-total"><span id="manualStatusLbl">المجموع: 0 د.ع</span></div>`;
+  wrap.querySelectorAll('.manual-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const d=parseInt(inp.dataset.denom);
+      const c = inp.value===''? 0 : Math.max(0, Math.round(num(inp.value)));
+      state.manualCounts[d]=c;
+      document.querySelector(`[data-manual-sub="${d}"]`).textContent = fmt(c*d)+' د.ع';
+      updateManualStatus();
+    });
+  });
+  updateManualStatus();
+}
+function updateManualStatus(){
+  const amount = num(document.getElementById('txAmount').value);
+  const sum = DENOMS.reduce((s,d)=> s + (state.manualCounts[d]||0)*d, 0);
+  const lbl = document.getElementById('manualStatusLbl');
+  const t = opType();
+  let exceeds = false;
+  if(t==='disburse'){
+    DENOMS.forEach(d=>{ if((state.manualCounts[d]||0) > (state.treasury[d]||0)) exceeds = true; });
+  }
+  if(lbl){
+    if(exceeds){ lbl.innerHTML = `<span style="color:var(--red);">المجموع: ${fmt(sum)} د.ع — الكمية المدخلة تتجاوز المتوفر بالخزينة</span>`; }
+    else if(sum===amount && amount>0){ lbl.innerHTML = `<span style="color:var(--olive-dark);">المجموع: ${fmt(sum)} د.ع — مطابق ✅</span>`; }
+    else { lbl.innerHTML = `المجموع: ${fmt(sum)} د.ع (المطلوب: ${fmt(amount)} د.ع)`; }
+  }
+  state.proposedBreakdown = (!exceeds && sum===amount && amount>0) ? {...state.manualCounts} : null;
+  state.proposedBreaks = [];
+  updateConfirmState();
+}
+document.getElementById('txAmount').addEventListener('input', ()=>{ if(distMethod()==='manual') updateManualStatus(); });
+
+/* ---------- auto controls ---------- */
+document.getElementById('txSource').addEventListener('change', ()=>{
+  document.getElementById('breakdownBox').style.display='none';
+  state.proposedBreakdown=null; state.proposedBreaks=[];
+  if(distMethod()==='manual') renderManualBox();
+  updateConfirmState();
+});
+document.getElementById('txAmount').addEventListener('input', ()=>{
+  document.getElementById('breakdownBox').style.display='none';
+  state.proposedBreakdown=null; state.proposedBreaks=[];
+  updateConfirmState();
+});
+document.getElementById('txName').addEventListener('input', updateConfirmState);
+
+document.getElementById('btnAuto').addEventListener('click', ()=>{
+  const amount = num(document.getElementById('txAmount').value);
+  if(amount<=0){ alert('أدخل المبلغ أولًا'); return; }
+  if(!needsDenoms()){ document.getElementById('breakdownBox').style.display='none'; state.proposedBreakdown={}; state.proposedBreaks=[]; updateConfirmState(); return; }
+  const t = opType();
+  if(t==='disburse'){
+    if(amount > treasuryTotal()){
+      renderBreakdown({result:{}, shortage:amount}, amount, []);
+      document.getElementById('breakdownBox').innerHTML = `<div class="warn">الرصيد الكلي في الخزينة غير كافٍ لهذا المبلغ (المتوفر: ${fmt(treasuryTotal())} د.ع)</div>`;
+      state.proposedBreakdown=null; state.proposedBreaks=[]; updateConfirmState(); return;
+    }
+    let dist = greedyDistribution(amount, treasuryAvailable());
+    if(dist.shortage===0){ renderBreakdown(dist, amount, []); return; }
+    const plan = planBreaks(amount, treasuryAvailable());
+    renderBreakdown(plan.dist, amount, plan.dist.shortage===0 ? plan.breaks : []);
+  } else {
+    const dist = greedyDistribution(amount, unlimitedAvailable());
+    renderBreakdown(dist, amount, []);
+  }
+});
+document.getElementById('btnRandom').addEventListener('click', ()=>{
+  const amount = num(document.getElementById('txAmount').value);
+  if(amount<=0){ alert('أدخل المبلغ أولًا'); return; }
+  if(!needsDenoms()){ alert('لا حاجة لتوزيع فئات عند اختيار «الصندوق فقط»'); return; }
+  const t = opType();
+  if(t==='disburse'){
+    if(amount > treasuryTotal()){
+      document.getElementById('breakdownBox').style.display='block';
+      document.getElementById('breakdownBox').innerHTML = `<div class="warn">الرصيد الكلي في الخزينة غير كافٍ لهذا المبلغ (المتوفر: ${fmt(treasuryTotal())} د.ع)</div>`;
+      state.proposedBreakdown=null; state.proposedBreaks=[]; updateConfirmState(); return;
+    }
+    let dist = randomDistribution(amount, treasuryAvailable());
+    if(dist){ renderBreakdown(dist, amount, []); return; }
+    const plan = planBreaks(amount, treasuryAvailable());
+    if(plan.dist.shortage===0){ const dist2 = randomDistribution(amount, plan.avail) || plan.dist; renderBreakdown(dist2, amount, plan.breaks); return; }
+    renderBreakdown(greedyDistribution(amount, treasuryAvailable()), amount, []);
+    document.getElementById('breakdownBox').insertAdjacentHTML('afterbegin', `<div class="warn">تعذّر توليد بديل، وتعذّر إتمام المبلغ حتى بعد التفكيك</div>`);
+  } else {
+    const dist = randomDistribution(amount, unlimitedAvailable()) || greedyDistribution(amount, unlimitedAvailable());
+    renderBreakdown(dist, amount, []);
+  }
+});
+
+function updateConfirmState(){
+  const amount = num(document.getElementById('txAmount').value);
+  const name = document.getElementById('txName').value.trim();
+  const btn = document.getElementById('btnConfirm');
+  if(!name || amount<=0){ btn.disabled=true; return; }
+  if(needsDenoms() && !state.proposedBreakdown){ btn.disabled=true; return; }
+  btn.disabled=false;
+}
+
+/* ---------- confirm ---------- */
+document.getElementById('btnConfirm').addEventListener('click', ()=>{
+  const amount = num(document.getElementById('txAmount').value);
+  const name = document.getElementById('txName').value.trim();
+  const source = document.getElementById('txSource').value;
+  const cashStatus = document.getElementById('txStatus').value;
+  const t = opType();
+  const sign = t==='disburse' ? -1 : 1;
+
+  let pendingSide = null, denomBreakdown = null;
+
+  if(source==='treasury' || source==='both'){
+    if(t==='disburse') applyBreaks(state.proposedBreaks);
+    const dist = state.proposedBreakdown;
+    DENOMS.forEach(d=>{ const used = dist[d]||0; state.treasury[d] = (state.treasury[d]||0) + sign*used; });
+    denomBreakdown = {...dist};
+  }
+  if(source==='box' || source==='both'){
+    state.box = (state.box===null?0:state.box) + sign*amount;
+    document.getElementById('boxBalance').value = state.box;
+  }
+  if(source==='treasury') pendingSide='box';
+  if(source==='box') pendingSide='treasury';
+
+  const now = new Date();
+  const tx = {
+    id: state.nextId++, type: t, name, amount, source, cashStatus, pendingSide, denomBreakdown,
+    dateKey: now.toISOString().slice(0,10),
+    time: now.toLocaleString('ar-IQ',{dateStyle:'medium',timeStyle:'short'})
+  };
+  state.transactions.unshift(tx);
+
+  document.getElementById('txName').value='';
+  document.getElementById('txAmount').value='';
+  document.getElementById('txAmountWords').textContent='';
+  document.getElementById('breakdownBox').style.display='none';
+  state.proposedBreakdown=null; state.proposedBreaks=[];
+  if(distMethod()==='manual') renderManualBox();
+
+  renderDenomTableValues();
+  recalcAll();
+  renderTransactions(); renderStatements();
+});
+
+/* ---------- transaction list ---------- */
+function sourceLabel(s){ return s==='both'?'من كلاهما':s==='treasury'?'من الخزينة':'من الصندوق'; }
+function pendingLabel(side_){ return side_==='box'?'الصندوق الإلكتروني':'الخزينة الفعلية'; }
+function typeLabel(t){ return t==='receive'?'قبض':'صرف'; }
+
+function renderTransactions(){
+  const list = document.getElementById('txList');
+  if(state.transactions.length===0){ list.innerHTML='<div class="empty">لا توجد عمليات بعد</div>'; }
+  else {
+    list.innerHTML = state.transactions.map(tx => `
+      <div class="tx" id="tx-${tx.id}">
+        <div class="tx-top">
+          <div>
+            <div class="tx-name">${tx.name} <span class="badge ${tx.type==='receive'?'type-in':'type-out'}">${typeLabel(tx.type)}</span></div>
+            <div class="tx-meta">${sourceLabel(tx.source)} · ${tx.time}</div>
+          </div>
+          <div class="tx-amount">${fmt(tx.amount)} د.ع</div>
+        </div>
+        <div class="tx-badges">
+          <span class="badge ${tx.cashStatus==='got'?'got':'wait'}">${tx.cashStatus==='got'? (tx.type==='receive'?'تم الإيداع':'تم الاستلام') : (tx.type==='receive'?'بانتظار الإيداع':'لم يُستلم بعد')}</span>
+          <span class="badge ${tx.pendingSide?'sync-bad':'sync-ok'}">${tx.pendingSide? 'بانتظار تحديث '+pendingLabel(tx.pendingSide) : 'متزامن ✅'}</span>
+        </div>
+        <div class="tx-actions">
+          ${tx.cashStatus==='wait' ? `<button class="btn ghost" onclick="markReceived(${tx.id})">${tx.type==='receive'?'تعليم كمودَع':'تعليم كمُستلم'}</button>` : ''}
+          ${tx.pendingSide ? `<button class="btn rust" onclick="syncTx(${tx.id})">مزامنة الآن</button>` : ''}
+          <button class="btn ghost" onclick="printTx(${tx.id})">طباعة السند 🖨</button>
+        </div>
+      </div>`).join('');
+  }
+  renderReminders();
+}
+function markReceived(id){ const tx=state.transactions.find(t=>t.id===id); tx.cashStatus='got'; renderTransactions(); renderStatements(); saveAll(); }
+
+function syncTx(id){
+  const tx = state.transactions.find(t=>t.id===id);
+  const sign = tx.type==='disburse' ? -1 : 1;
+  if(tx.pendingSide==='box'){
+    state.box = (state.box===null?0:state.box) + sign*tx.amount;
+    document.getElementById('boxBalance').value = state.box;
+  } else if(tx.pendingSide==='treasury'){
+    if(tx.type==='receive'){
+      const dist = greedyDistribution(tx.amount, unlimitedAvailable());
+      DENOMS.forEach(d=>{ state.treasury[d] = (state.treasury[d]||0) + (dist.result[d]||0); });
+      tx.denomBreakdown = dist.result;
+    } else {
+      let dist = greedyDistribution(tx.amount, treasuryAvailable());
+      if(dist.shortage!==0){
+        if(tx.amount > treasuryTotal()){ alert('تعذّرت المزامنة: الرصيد الكلي في الخزينة غير كافٍ حاليًا (المتوفر: '+fmt(treasuryTotal())+' د.ع)'); return; }
+        const plan = planBreaks(tx.amount, treasuryAvailable());
+        if(plan.dist.shortage!==0){ alert('تعذّرت المزامنة: لا يمكن تكوين هذا المبلغ حتى بعد التفكيك (الفرق: '+fmt(Math.abs(plan.dist.shortage))+' د.ع)'); return; }
+        const brokenList = Object.entries(plan.breaks.reduce((a,b)=>{a[b.from]=(a[b.from]||0)+1;return a;},{})).map(([d,c])=>`${fmt(d)}×${c}`).join('، ');
+        if(!confirm('يلزم تفكيك الفئات التالية لإتمام المزامنة: '+brokenList+'. هل تريد المتابعة؟')) return;
+        applyBreaks(plan.breaks); dist = plan.dist;
+      }
+      DENOMS.forEach(d=>{ state.treasury[d] = (state.treasury[d]||0) - (dist.result[d]||0); });
+      tx.denomBreakdown = dist.result;
+    }
+    renderDenomTableValues();
+  }
+  tx.pendingSide = null;
+  recalcAll();
+  renderTransactions(); renderStatements();
+}
+function renderReminders(){
+  const pending = state.transactions.filter(t=>t.pendingSide);
+  const zone = document.getElementById('reminderZone');
+  zone.innerHTML = pending.length===0 ? '' : `<div class="reminder-banner">🔔 لديك ${pending.length} سند بانتظار تحديث النظام المعزول يدويًا — راجع زر «مزامنة الآن» في كل سند أدناه.</div>`;
+}
+
+/* ---------- print: single voucher ---------- */
+function printTx(id){
+  const tx = state.transactions.find(t=>t.id===id);
+  const area = document.getElementById('print-area');
+  let denomsHtml='';
+  if(tx.denomBreakdown){
+    denomsHtml = DENOMS.filter(d=>(tx.denomBreakdown[d]||0)>0).map(d=>`<div class="p-row"><b>${fmt(d)} × ${tx.denomBreakdown[d]}</b><span>${fmt(d*tx.denomBreakdown[d])}</span></div>`).join('');
+  }
+  area.innerHTML = `
+    <div class="p-title">سند ${typeLabel(tx.type)} رقم ${tx.id}</div>
+    <div class="p-sub">${tx.time}</div>
+    <div class="p-line"></div>
+    <div class="p-row"><b>الاسم</b><span>${tx.name}</span></div>
+    <div class="p-row"><b>المبلغ</b><span>${fmt(tx.amount)} د.ع</span></div>
+    <div class="p-row"><b>المصدر</b><span>${sourceLabel(tx.source)}</span></div>
+    <div class="p-row"><b>الحالة</b><span>${tx.cashStatus==='got'?'مكتملة':'قيد الانتظار'}</span></div>
+    ${denomsHtml ? '<div class="p-line"></div>'+denomsHtml : ''}
+    <div class="p-line"></div>
+    <div class="p-row"><b>رصيد الصندوق الحالي</b><span>${fmt(state.box||0)}</span></div>
+    <div class="p-row"><b>النقد الفعلي بالخزينة</b><span>${fmt(treasuryTotal())}</span></div>`;
+  window.print();
+}
+
+/* ---------- print: full report ---------- */
+function printReport(todayOnly){
+  const todayKey = new Date().toISOString().slice(0,10);
+  const rows = state.transactions.filter(t=> !todayOnly || t.dateKey===todayKey);
+  const area = document.getElementById('print-area');
+  if(rows.length===0){ alert('لا توجد عمليات ضمن هذا النطاق'); return; }
+  const trs = rows.map(t=>`<tr><td>${t.name}</td><td>${fmt(t.amount)}</td><td>${typeLabel(t.type)}</td><td>${sourceLabel(t.source)}</td><td>${t.cashStatus==='got'?'مكتملة':'قيد الانتظار'}</td><td>${t.time}</td></tr>`).join('');
+  area.innerHTML = `
+    <div class="p-title">كشف العمليات ${todayOnly? '(اليوم)':'(كامل السجل)'}</div>
+    <div class="p-sub">${new Date().toLocaleString('ar-IQ',{dateStyle:'medium',timeStyle:'short'})}</div>
+    <div class="p-line"></div>
+    <table class="p-table"><thead><tr><th>الاسم</th><th>المبلغ</th><th>النوع</th><th>المصدر</th><th>الحالة</th><th>الوقت</th></tr></thead><tbody>${trs}</tbody></table>
+    <div class="p-line"></div>
+    <div class="p-row"><b>رصيد الصندوق</b><span>${fmt(state.box||0)}</span></div>
+    <div class="p-row"><b>النقد الفعلي بالخزينة</b><span>${fmt(treasuryTotal())}</span></div>`;
+  window.print();
+}
+document.getElementById('btnPrintToday').addEventListener('click', ()=>printReport(true));
+document.getElementById('btnPrintAll').addEventListener('click', ()=>printReport(false));
+
+/* ---------- side ledger ---------- */
+function sideTotals(){
+  const totalIn = side.entries.filter(e=>e.type==='in').reduce((s,e)=>s+e.amount,0);
+  const totalOut = side.entries.filter(e=>e.type==='out').reduce((s,e)=>s+e.amount,0);
+  return {totalIn, totalOut, bal: totalIn-totalOut};
+}
+function renderSide(){
+  const {totalIn, totalOut, bal} = sideTotals();
+  document.getElementById('sideIn').textContent = fmt(totalIn)+' د.ع';
+  document.getElementById('sideOut').textContent = fmt(totalOut)+' د.ع';
+  document.getElementById('sideBal').textContent = fmt(bal)+' د.ع';
+  const balCard = document.getElementById('sideBalCard');
+  balCard.className = 'card' + (bal>=0 ? ' match-ok' : ' match-bad');
+
+  const list = document.getElementById('sideList');
+  if(side.entries.length===0){ list.innerHTML='<div class="empty">لا توجد حركات بعد</div>'; return; }
+  list.innerHTML = side.entries.map(e=>`
+    <div class="tx">
+      <div class="tx-top">
+        <div><div class="tx-name">${e.desc} <span class="badge ${e.type==='in'?'type-in':'type-out'}">${e.type==='in'?'وارد':'صادر'}</span></div>
+        <div class="tx-meta">${e.time}</div></div>
+        <div class="tx-amount">${fmt(e.amount)} د.ع</div>
+      </div>
+      <div class="tx-actions"><button class="btn ghost" onclick="deleteSideEntry(${e.id})">حذف</button></div>
+    </div>`).join('');
+}
+function deleteSideEntry(id){ side.entries = side.entries.filter(e=>e.id!==id); renderSide(); saveAll(); }
+document.getElementById('btnSideAdd').addEventListener('click', ()=>{
+  const desc = document.getElementById('sideDesc').value.trim();
+  const amount = num(document.getElementById('sideAmount').value);
+  const type = document.getElementById('sideType').value;
+  if(!desc || amount<=0){ alert('أدخل الوصف والمبلغ'); return; }
+  side.entries.unshift({ id: side.nextId++, desc, amount, type, time: new Date().toLocaleString('ar-IQ',{dateStyle:'medium',timeStyle:'short'}) });
+  document.getElementById('sideDesc').value='';
+  document.getElementById('sideAmount').value='';
+  document.getElementById('sideAmountWords').textContent='';
+  renderSide(); saveAll();
+});
+
+/* ---------- tabs ---------- */
+document.getElementById('tabBtnTreasury').addEventListener('click', ()=> switchTab('panelTreasury','tabBtnTreasury'));
+document.getElementById('tabBtnStatements').addEventListener('click', ()=>{ switchTab('panelStatements','tabBtnStatements'); renderStatements(); });
+document.getElementById('tabBtnSide').addEventListener('click', ()=> switchTab('panelSide','tabBtnSide'));
+function switchTab(panelId, btnId){
+  ['panelTreasury','panelStatements','panelSide'].forEach(id=> document.getElementById(id).classList.toggle('active', id===panelId));
+  ['tabBtnTreasury','tabBtnStatements','tabBtnSide'].forEach(id=> document.getElementById(id).classList.toggle('active', id===btnId));
+}
+
+/* ---------- statements tab ---------- */
+function dateKeyDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+function filteredStatements(){
+  const range = document.querySelector('input[name=stmtRange]:checked').value;
+  const todayKey = new Date().toISOString().slice(0,10);
+  let from=null, to=null;
+  if(range==='today'){ from=todayKey; to=todayKey; }
+  else if(range==='week'){ from=dateKeyDaysAgo(6); to=todayKey; }
+  else if(range==='month'){ from=dateKeyDaysAgo(29); to=todayKey; }
+  else if(range==='custom'){ from=document.getElementById('stmtFrom').value||null; to=document.getElementById('stmtTo').value||null; }
+  return state.transactions.filter(t=>{
+    if(from && t.dateKey<from) return false;
+    if(to && t.dateKey>to) return false;
+    return true;
+  });
+}
+function renderStatements(){
+  const rows = filteredStatements();
+  const tbody = document.getElementById('stmtTbody');
+  const empty = document.getElementById('stmtEmpty');
+  if(rows.length===0){ tbody.innerHTML=''; empty.style.display='block'; }
+  else {
+    empty.style.display='none';
+    tbody.innerHTML = rows.map(t=>`
+      <tr>
+        <td>${t.name}</td>
+        <td>${fmt(t.amount)} د.ع</td>
+        <td>${typeLabel(t.type)}</td>
+        <td>${sourceLabel(t.source)}</td>
+        <td>${t.cashStatus==='got'?'مكتملة':'قيد الانتظار'}</td>
+        <td>${t.time}</td>
+      </tr>`).join('');
+  }
+  const totalOut = rows.filter(t=>t.type==='disburse').reduce((s,t)=>s+t.amount,0);
+  const totalIn = rows.filter(t=>t.type==='receive').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('stmtOut').textContent = fmt(totalOut)+' د.ع';
+  document.getElementById('stmtIn').textContent = fmt(totalIn)+' د.ع';
+  document.getElementById('stmtCount').textContent = rows.length;
+}
+document.querySelectorAll('input[name=stmtRange]').forEach(r=> r.addEventListener('change', ()=>{
+  document.getElementById('stmtCustomRange').style.display = r.value==='custom' ? 'grid' : 'none';
+  renderStatements();
+}));
+document.getElementById('stmtFrom').addEventListener('change', renderStatements);
+document.getElementById('stmtTo').addEventListener('change', renderStatements);
+document.getElementById('btnPrintStmt').addEventListener('click', ()=>{
+  const rows = filteredStatements();
+  if(rows.length===0){ alert('لا توجد عمليات ضمن هذا النطاق'); return; }
+  const range = document.querySelector('input[name=stmtRange]:checked').value;
+  const labelMap = {today:'اليوم', week:'آخر ٧ أيام', month:'آخر ٣٠ يومًا', all:'كل السجل', custom:'نطاق مخصص'};
+  const area = document.getElementById('print-area');
+  const trs = rows.map(t=>`<tr><td>${t.name}</td><td>${fmt(t.amount)}</td><td>${typeLabel(t.type)}</td><td>${sourceLabel(t.source)}</td><td>${t.cashStatus==='got'?'مكتملة':'قيد الانتظار'}</td><td>${t.time}</td></tr>`).join('');
+  area.innerHTML = `
+    <div class="p-title">كشف العمليات (${labelMap[range]})</div>
+    <div class="p-sub">${new Date().toLocaleString('ar-IQ',{dateStyle:'medium',timeStyle:'short'})}</div>
+    <div class="p-line"></div>
+    <table class="p-table"><thead><tr><th>الاسم</th><th>المبلغ</th><th>النوع</th><th>المصدر</th><th>الحالة</th><th>الوقت</th></tr></thead><tbody>${trs}</tbody></table>
+    <div class="p-line"></div>
+    <div class="p-row"><b>رصيد الصندوق</b><span>${fmt(state.box||0)}</span></div>
+    <div class="p-row"><b>النقد الفعلي بالخزينة</b><span>${fmt(treasuryTotal())}</span></div>`;
+  window.print();
+});
+document.getElementById('btnAddQuick').addEventListener('click', ()=>{
+  switchTab('panelTreasury','tabBtnTreasury');
+  document.querySelector('input[name=opType][value=receive]').checked = true;
+  refreshOpLabels();
+  document.getElementById('breakdownBox').style.display='none';
+  state.proposedBreakdown=null; state.proposedBreaks=[];
+  if(distMethod()==='manual') renderManualBox();
+  document.getElementById('txName').focus();
+});
+
+/* ---------- backup + file link buttons ---------- */
+document.getElementById('btnExport').addEventListener('click', exportBackup);
+document.getElementById('btnImportTrigger').addEventListener('click', ()=> document.getElementById('btnImport').click());
+document.getElementById('btnImport').addEventListener('change', e=>{ if(e.target.files[0]) importBackup(e.target.files[0]); e.target.value=''; });
+document.getElementById('btnLinkNew').addEventListener('click', linkNewFile);
+document.getElementById('btnLinkExisting').addEventListener('click', linkExistingFile);
+document.getElementById('btnReconnect').addEventListener('click', reconnectFile);
+
+/* ---------- box balance ---------- */
+document.getElementById('boxBalance').addEventListener('input', e=>{
+  state.box = e.target.value===''? null : num(e.target.value);
+  recalcAll();
+});
+
+/* ---------- init ---------- */
+(async function init(){
+  await loadAll();
+  renderDenomTable();
+  renderDenomTableValues();
+  document.getElementById('boxBalance').value = state.box===null? '' : state.box;
+  attachWordsPreview(document.getElementById('txAmount'), document.getElementById('txAmountWords'));
+  attachWordsPreview(document.getElementById('sideAmount'), document.getElementById('sideAmountWords'));
+  refreshOpLabels();
+  recalcAll();
+  renderTransactions(); renderStatements();
+  renderSide();
+  renderStatements();
+})();
+</script>
+</body>
+</html>
